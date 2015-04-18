@@ -60,6 +60,7 @@ EnemyObj.prototype.update = function(){
 EnemyObj.prototype.damage = function(){
     this.hp--;
     if(this.hp <= 0){
+        score += 20;
         this.enemy.kill();
         return true;
     }
@@ -132,7 +133,7 @@ var GameState = {
         game.physics.startSystem(Phaser.Physics.ARCADE);
         
         // Player
-        player = game.add.sprite(200, 200, 'player');
+        player = game.add.sprite(game.world.centerX, game.world.centerY, 'player');
         game.physics.enable(player, Phaser.Physics.ARCADE);
         player.body.collideWorldBounds = true;
         player.body.maxVelocity.y = 750;
@@ -152,7 +153,7 @@ var GameState = {
         }
 
         // UI
-        scoreText = game.add.text(game.world.centerX, 25, "0");
+        scoreText = game.add.text(game.world.centerX, 25, score.toString());
         scoreText.anchor.set(0.5);
         scoreText.align = 'center';
         scoreText.font = 'Arial Black';
@@ -199,7 +200,7 @@ var GameState = {
         if(game.input.activePointer.isDown){
             var bullet = bullets.getFirstExists(false);
             bullet.reset(player.body.x + 16, player.body.y + 16);
-            bullet.rotation = game.physics.arcade.moveToPointer(bullet, 1000, game.input.activePointer, 500);
+            bullet.rotation = game.physics.arcade.moveToPointer(bullet, 1000, game.input.activePointer, 500 * bCollected);
         }
 
         // Movement
@@ -242,7 +243,7 @@ var GameState = {
         }
 
         // Update UI
-        scoreText.setText = score;
+        scoreText.setText(score.toString());
 
         if(bCollected === 1){
             battery[2].visible = true;
@@ -287,7 +288,7 @@ function pickUpBattery(obj1, obj2){
 }
 
 function addBattery(x){
-    var battery = batteries.create(game.rnd.integerInRange(32, 868), game.rnd.integerInRange(32, 468), 'player'); // TODO: Change sprite image
+    var battery = batteries.create(game.rnd.integerInRange(32, 868), game.rnd.integerInRange(32, 468), 'battery');
     battery.name = 'battery' + x;
     battery.body.immovable = true;
     batteriesOn++;
