@@ -1,11 +1,41 @@
-var player, batteries, enemies;
+var player, batteries, enemies, enemy;
 var aButton, cButton;
 var bCollected = 1;
 var map, layer;
 var level = 1;
 var batteriesOn = 0;
 var score = 0;
+var enemiesAlive = 0;
 var lives = 3;
+
+EnemyObj = function(index, game, player){
+
+    var x, y;
+    if(game.rnd.integerInRange(0, 1) === 0){ x = 15; } else { x = 905; }
+    y = game.world.randomY;
+
+    this.game = game;
+    this.hp = 3;
+    this.player = player;
+    this.enemy = game.add.sprite(x, y, 'player'); // TODO: Change sprite
+
+    game.physics.enable(this.enemy, Phaser.Physics.ARCADE);
+
+    this.enemy.body.immovable = false;
+    this.enemy.body.collideWorldBounds = true;
+
+};
+
+EnemyObj.prototype.update = function(){
+    this.enemy.rotation = game.physics.arcade.moveToXY(this.enemy, player.body.x, player.body.y, 25);
+};
+
+EnemyObj.prototype.damage = function(){
+    this.hp--;
+    if(this.hp <= 0){
+        this.enemy.destroy();
+    }
+};
 
 var MenuState = {
 
@@ -60,7 +90,7 @@ var GameState = {
         game.physics.enable(player, Phaser.Physics.ARCADE);
         player.body.collideWorldBounds = true;
         player.body.maxVelocity.y = 750;
-        player.body.setSize(32, 32)
+        player.body.setSize(32, 32);
         game.camera.follow(player);
 
         // Batteries
@@ -69,9 +99,11 @@ var GameState = {
         batteries.physicsBodyType = Phaser.Physics.ARCADE;
 
         // Enemies
-        enemies = game.add.group();
-        enemies.enableBody = true;
-        enemies.physicsBodyType = Phaser.Physics.ARCADE;
+        enemies = [];
+        for(var x = 0; x < level * 5; x++){
+            enemies.push(new EnemyObj(x, game, enemy));
+            enemiesAlive++;
+        }
 
     },
 
@@ -100,7 +132,7 @@ var GameState = {
             player.body.velocity.y = 200 * bCollected;
         }
 
-        // Pick up battery
+        // Collision detection
         game.physics.arcade.collide(player, batteries, pickUpBattery, null, this);
 
         // Place new batteries
@@ -111,10 +143,25 @@ var GameState = {
             }
         }
 
+        // Create enemies
+        if(enemiesAlive < level * 5){
+            enemies.push(new EnemyObj(i, game, enemy));
+            enemiesAlive++;
+        }
+
+        for (var i = 0; i < enemies.length; i++){
+            game.physics.arcade.collide(player, enemies[i].enemy, function(){
+                lives--;
+            });
+            enemies[i].update();
+        }
+
     },
 
     render: function(){
         game.debug.text('Batteries: ' + bCollected, 32, 32);
+        game.debug.text('Score: ' + score, 32, 64);
+        game.debug.text('Lives: ' + lives, 32, 96);
     }
 
 };
