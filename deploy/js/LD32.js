@@ -30,13 +30,14 @@ var level = 1;
 var batteriesOn = 0;
 var score = 0;
 var enemiesAlive = 0;
+var killed = 0;
 var lives = 3;
 var scoreText, hearts, battery;
 
 EnemyObj = function(index, game, player){
 
     var x, y;
-    if(game.rnd.integerInRange(0, 1) === 0){ x = 15; } else { x = 905; }
+    x = 15;
     y = game.world.randomY;
 
     this.game = game;
@@ -49,7 +50,6 @@ EnemyObj = function(index, game, player){
     this.enemy.body.immovable = false;
     this.enemy.body.collideWorldBounds = true;
     this.enemy.body.setSize(32, 32);
-    //game.debug.body(this.enemy);
 
 };
 
@@ -61,6 +61,7 @@ EnemyObj.prototype.damage = function(){
     this.hp--;
     if(this.hp <= 0){
         score += 20;
+        enemiesAlive--;
         this.enemy.kill();
         return true;
     }
@@ -184,7 +185,7 @@ var GameState = {
         bullets = game.add.group();
         bullets.enableBody = true;
         bullets.physicsBodyType = Phaser.Physics.ARCADE;
-        bullets.createMultiple(30, 'bullet', 0, false);
+        bullets.createMultiple(100, 'bullet', 0, false);
         bullets.setAll('outOfBoundsKill', true);
         bullets.setAll('checkWorldBounds', true);
 
@@ -200,7 +201,8 @@ var GameState = {
         if(game.input.activePointer.isDown){
             var bullet = bullets.getFirstExists(false);
             bullet.reset(player.body.x + 16, player.body.y + 16);
-            bullet.rotation = game.physics.arcade.moveToPointer(bullet, 1000, game.input.activePointer, 500 * bCollected);
+            bullet.rotation = game.physics.arcade.moveToPointer(bullet, 1000, game.input.activePointer, 500);
+            console.log(enemiesAlive);
         }
 
         // Movement
@@ -220,18 +222,19 @@ var GameState = {
         // Collision detection
         game.physics.arcade.collide(player, batteries, pickUpBattery, null, this);
 
-        // Place new batteries
-        if(batteriesOn < level){
-            for(var x = 0; x < level; x++){
-                console.log("can: " + level);
-                addBattery(x);
-            }
-        }
-
         // Create enemies
-        if(enemiesAlive < level * 5){
-            enemies.push(new EnemyObj(i, game, enemy));
-            enemiesAlive++;
+        if(enemiesAlive <= 0){
+            var nw = enemies.length + (level * 5);
+            for(var x = enemies.length; x < nw; x++){
+                enemies.push(new EnemyObj(x, game, enemy));
+                enemiesAlive++;
+            }
+            var no = 0;
+            if(level >= 3){ no = 3; } else {no = level; }
+            for(var x = 0; x < no; x++){
+                addBattery();
+            }
+            level++;
         }
 
         for (var i = 0; i < enemies.length; i++){
@@ -283,16 +286,14 @@ var GameState = {
 function pickUpBattery(obj1, obj2){
     if(bCollected < 100){
         bCollected++;
+        //batteriesOn--;
         batteries.remove(obj2);
     }
 }
 
-function addBattery(x){
+function addBattery(){
     var battery = batteries.create(game.rnd.integerInRange(32, 868), game.rnd.integerInRange(32, 468), 'battery');
-    battery.name = 'battery' + x;
     battery.body.immovable = true;
-    batteriesOn++;
-    console.log("on: " + batteriesOn);
 }
 
 function hitEnemy(enemy, bullet){
