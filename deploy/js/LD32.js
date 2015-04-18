@@ -27,9 +27,11 @@ var player;
 var aButton;
 var cButton;
 var bCollected = 1;
-var battery;
 var map;
 var layer;
+var level = 1;
+var batteriesOn = 0;
+var batteries;
 
 var MenuState = {
 
@@ -88,9 +90,9 @@ var GameState = {
         game.camera.follow(player);
 
         // Batteries
-        battery = game.add.sprite(400, 300, 'player'); // TODO: Change sprite image
-        game.physics.enable(battery, Phaser.Physics.ARCADE);
-        battery.body.immovable = true;
+        batteries = game.add.group();
+        batteries.enableBody = true;
+        batteries.physicsBodyType = Phaser.Physics.ARCADE;
 
     },
 
@@ -100,7 +102,7 @@ var GameState = {
         player.body.velocity.x = 0;
         player.body.velocity.y = 0;
 
-        // Jump
+        // Attack
         if(aButton.isDown){
             // TODO: Attack
         }
@@ -120,17 +122,33 @@ var GameState = {
         }
 
         // Pick up battery
-        game.physics.arcade.collide(player, battery, pickUpBattery, null, this);
+        game.physics.arcade.collide(player, batteries, pickUpBattery, null, this);
+
+        // Place new batteries
+        if(batteriesOn < level){
+            for(var x = 0; x < level; x++){
+                console.log("can: " + level);
+                addBattery(x);
+            }
+        }
 
     }
 
 };
 
 function pickUpBattery(obj1, obj2){
-    if(bCollected < 3){
+    if(bCollected < 100){
         bCollected++;
-        obj2.destroy();
+        batteries.remove(obj2);
     }
+}
+
+function addBattery(x){
+    console.log("on: " + batteriesOn);
+    var battery = batteries.create(game.rnd.integerInRange(32, 868), game.rnd.integerInRange(32, 468), 'player'); // TODO: Change sprite image
+    battery.name = 'battery' + x;
+    battery.body.immovable = true;
+    batteriesOn++;
 }
 
 var game = new Phaser.Game(900, 500, Phaser.AUTO, 'game');
