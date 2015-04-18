@@ -8,15 +8,14 @@ This is an entry for LudumDare 32. Game is built with `Javascript` and `Phaser`.
 * ~~Spawn batteries~~
 * ~~Load TileMap~~
 * ~~Add enemies~~
-* Add GUI
+* ~~Add GUI~~
 * Add an ability to attack enemies
 * Add an ability for enemies to attack
-* Draw sprites
 * Create other scenes
-* Create music
-
+* Draw sprites
 
 ### Extra
+* Create music
 * Add effect for attacks
 * Add shield
 * Add a boss

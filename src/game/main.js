@@ -7,6 +7,7 @@ var batteriesOn = 0;
 var score = 0;
 var enemiesAlive = 0;
 var lives = 3;
+var scoreText, hearts, battery;
 
 EnemyObj = function(index, game, player){
 
@@ -62,6 +63,8 @@ var GameState = {
         game.load.tilemap('level', 'level.json', null, Phaser.Tilemap.TILED_JSON);
         game.load.image('player', 'img/player.png');
         game.load.image('tilesheet', 'img/tilesheet.png');
+        game.load.image('heart', 'img/heart.png');
+        game.load.image('battery', 'img/battery.png');
         
     },
 
@@ -105,7 +108,35 @@ var GameState = {
             enemiesAlive++;
         }
 
-    },
+        // UI
+        scoreText = game.add.text(game.world.centerX, 25, "0");
+        scoreText.anchor.set(0.5);
+        scoreText.align = 'center';
+        scoreText.font = 'Arial Black';
+        scoreText.fontSize = 50;
+        scoreText.fontWeight = 'bold';
+        scoreText.fill = '#499231';
+        scoreText.fixedToCamera = true;
+
+        hearts = [];
+
+        hearts.push(game.add.sprite(5, 5, 'heart'));
+        hearts.push(game.add.sprite(45, 5, 'heart'));
+        hearts.push(game.add.sprite(85, 5, 'heart'));
+        hearts[0].fixedToCamera = true;
+        hearts[1].fixedToCamera = true;
+        hearts[2].fixedToCamera = true;
+
+        battery = [];
+
+        battery.push(game.add.sprite(815, 5, 'battery'));
+        battery.push(game.add.sprite(840, 5, 'battery'));
+        battery.push(game.add.sprite(865, 5, 'battery'));
+        battery[0].fixedToCamera = true;
+        battery[1].fixedToCamera = true;
+        battery[2].fixedToCamera = true;
+
+        },
 
     update: function() {
 
@@ -151,17 +182,44 @@ var GameState = {
 
         for (var i = 0; i < enemies.length; i++){
             game.physics.arcade.collide(player, enemies[i].enemy, function(){
-                lives--;
+                if(lives > 0) { hearts[lives - 1].destroy(); lives--; }
             });
             enemies[i].update();
         }
 
-    },
+        // Update UI
+        scoreText.setText = score;
 
-    render: function(){
-        game.debug.text('Batteries: ' + bCollected, 32, 32);
-        game.debug.text('Score: ' + score, 32, 64);
-        game.debug.text('Lives: ' + lives, 32, 96);
+        if(bCollected === 1){
+            battery[2].visible = true;
+            battery[1].visible = false;
+            battery[0].visible = false;
+        }
+
+        if(bCollected === 2){
+            battery[2].visible = true;
+            battery[1].visible = true;
+            battery[0].visible = false;
+        }
+
+        if(bCollected === 3){
+            battery[2].visible = true;
+            battery[1].visible = true;
+            battery[0].visible = true;
+        }
+
+        if(bCollected === 0){
+            battery[2].visible = false;
+            battery[1].visible = false;
+            battery[0].visible = false;
+        }
+
+
+        // Check if lost
+        if(lives === 0){
+            console.log("You lost");
+        }       
+
     }
 
 };
