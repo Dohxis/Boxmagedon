@@ -1,5 +1,4 @@
-var player, batteries, enemies, enemy;
-var aButton, cButton;
+var player, batteries, enemies, enemy, bullets;
 var bCollected = 1;
 var map, layer;
 var level = 1;
@@ -21,21 +20,25 @@ EnemyObj = function(index, game, player){
     this.enemy = game.add.sprite(x, y, 'player'); // TODO: Change sprite
 
     game.physics.enable(this.enemy, Phaser.Physics.ARCADE);
-
+    this.enemy.name = index.toString();
     this.enemy.body.immovable = false;
     this.enemy.body.collideWorldBounds = true;
+    this.enemy.body.setSize(32, 32);
+    //game.debug.body(this.enemy);
 
 };
 
 EnemyObj.prototype.update = function(){
     this.enemy.rotation = game.physics.arcade.moveToXY(this.enemy, player.body.x, player.body.y, 25);
-};
+}
 
 EnemyObj.prototype.damage = function(){
     this.hp--;
     if(this.hp <= 0){
-        this.enemy.destroy();
+        this.enemy.kill();
+        return true;
     }
+    return false;
 };
 
 var MenuState = {
@@ -56,6 +59,24 @@ var MenuState = {
 
 };
 
+var LostState = {
+
+    preload: function() {
+        
+    },
+
+    create: function(){
+
+        game.state.start("Game", true, false);
+
+    },
+
+    update: function() {
+        
+    }
+
+};
+
 var GameState = {
 
     preload: function() {
@@ -65,6 +86,7 @@ var GameState = {
         game.load.image('tilesheet', 'img/tilesheet.png');
         game.load.image('heart', 'img/heart.png');
         game.load.image('battery', 'img/battery.png');
+        game.load.image('bullet', 'img/bullet.png');
         
     },
 
@@ -72,10 +94,6 @@ var GameState = {
 
         // FPS
         game.time.desiredFps = 30;
-
-        // Buttons
-        aButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-        cButton = game.input.keyboard.createCursorKeys();
 
         // Map
         map = game.add.tilemap('level');
@@ -136,6 +154,14 @@ var GameState = {
         battery[1].fixedToCamera = true;
         battery[2].fixedToCamera = true;
 
+        // My bullets
+        bullets = game.add.group();
+        bullets.enableBody = true;
+        bullets.physicsBodyType = Phaser.Physics.ARCADE;
+        bullets.createMultiple(30, 'bullet', 0, false);
+        bullets.setAll('outOfBoundsKill', true);
+        bullets.setAll('checkWorldBounds', true);
+
         },
 
     update: function() {
@@ -145,21 +171,23 @@ var GameState = {
         player.body.velocity.y = 0;
 
         // Attack
-        if(aButton.isDown){
-            // TODO: Attack
+        if(game.input.activePointer.isDown){
+            var bullet = bullets.getFirstExists(false);
+            bullet.reset(player.body.x + 16, player.body.y + 16);
+            bullet.rotation = game.physics.arcade.moveToPointer(bullet, 1000, game.input.activePointer, 500);
         }
 
         // Movement
-        if(cButton.right.isDown){
+        if(game.input.keyboard.isDown(Phaser.Keyboard.D)){
             player.body.velocity.x = 200 * bCollected;
         }
-        else if(cButton.left.isDown){
+        else if(game.input.keyboard.isDown(Phaser.Keyboard.A)){
             player.body.velocity.x = -200 * bCollected;
         }
-        else if(cButton.up.isDown){
+        else if(game.input.keyboard.isDown(Phaser.Keyboard.W)){
             player.body.velocity.y = -200 * bCollected;
         }
-        else if(cButton.down.isDown){
+        else if(game.input.keyboard.isDown(Phaser.Keyboard.S)){
             player.body.velocity.y = 200 * bCollected;
         }
 
@@ -184,6 +212,7 @@ var GameState = {
             game.physics.arcade.collide(player, enemies[i].enemy, function(){
                 if(lives > 0) { hearts[lives - 1].destroy(); lives--; }
             });
+            game.physics.arcade.collide(bullets, enemies[i].enemy, hitEnemy, null, this);
             enemies[i].update();
         }
 
@@ -217,7 +246,8 @@ var GameState = {
 
         // Check if lost
         if(lives === 0){
-            console.log("You lost");
+            lives = 3;
+            game.state.start("Lost");
         }       
 
     }
@@ -239,8 +269,14 @@ function addBattery(x){
     console.log("on: " + batteriesOn);
 }
 
+function hitEnemy(enemy, bullet){
+    bullet.kill();
+    enemies[enemy.name].damage();
+}
+
 var game = new Phaser.Game(900, 500, Phaser.AUTO, 'game');
 
 game.state.add('Menu', MenuState);
 game.state.add('Game', GameState);
+game.state.add('Lost', LostState);
 game.state.start('Menu');
