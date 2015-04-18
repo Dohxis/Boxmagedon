@@ -1,0 +1,17 @@
+body {
+    background: #f37c22;
+}
+
+#container {
+	border-radius: 30px;
+	background: #2F3134;
+	width: 1000px;
+	margin: 50px auto;
+	line-height: 600px;
+	text-align: center;	
+}
+
+#game {
+	vertical-align: middle;
+  	display: inline-block;
+}
