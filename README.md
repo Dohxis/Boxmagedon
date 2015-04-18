@@ -1,7 +1,7 @@
 Ludum Dare 32
 -------------
 
-This is an entry for LudumDare 32. game is built with `Javascript` and `Phaser`.
+This is an entry for LudumDare 32. Game is built with `Javascript` and `Phaser`.
 
 ### Todo
 * ~~Movement~~
