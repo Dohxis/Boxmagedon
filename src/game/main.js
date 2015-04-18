@@ -1,12 +1,11 @@
-var player;
-var aButton;
-var cButton;
+var player, batteries, enemies;
+var aButton, cButton;
 var bCollected = 1;
-var map;
-var layer;
+var map, layer;
 var level = 1;
 var batteriesOn = 0;
-var batteries;
+var score = 0;
+var lives = 3;
 
 var MenuState = {
 
@@ -69,6 +68,11 @@ var GameState = {
         batteries.enableBody = true;
         batteries.physicsBodyType = Phaser.Physics.ARCADE;
 
+        // Enemies
+        enemies = game.add.group();
+        enemies.enableBody = true;
+        enemies.physicsBodyType = Phaser.Physics.ARCADE;
+
     },
 
     update: function() {
@@ -84,16 +88,16 @@ var GameState = {
 
         // Movement
         if(cButton.right.isDown){
-            player.body.velocity.x = 250 * bCollected;
+            player.body.velocity.x = 200 * bCollected;
         }
         else if(cButton.left.isDown){
-            player.body.velocity.x = -250 * bCollected;
+            player.body.velocity.x = -200 * bCollected;
         }
         else if(cButton.up.isDown){
-            player.body.velocity.y = -250 * bCollected;
+            player.body.velocity.y = -200 * bCollected;
         }
         else if(cButton.down.isDown){
-            player.body.velocity.y = 250 * bCollected;
+            player.body.velocity.y = 200 * bCollected;
         }
 
         // Pick up battery
@@ -107,6 +111,10 @@ var GameState = {
             }
         }
 
+    },
+
+    render: function(){
+        game.debug.text('Batteries: ' + bCollected, 32, 32);
     }
 
 };
@@ -119,11 +127,11 @@ function pickUpBattery(obj1, obj2){
 }
 
 function addBattery(x){
-    console.log("on: " + batteriesOn);
     var battery = batteries.create(game.rnd.integerInRange(32, 868), game.rnd.integerInRange(32, 468), 'player'); // TODO: Change sprite image
     battery.name = 'battery' + x;
     battery.body.immovable = true;
     batteriesOn++;
+    console.log("on: " + batteriesOn);
 }
 
 var game = new Phaser.Game(900, 500, Phaser.AUTO, 'game');
