@@ -11,9 +11,10 @@ var scoreText, hearts, battery;
 
 EnemyObj = function(index, game, player){
 
-    var x, y;
+    var x, y, randM;
     x = 15;
     y = game.world.randomY;
+    this.randM = game.rnd.integerInRange(-200, 200);
 
     this.game = game;
     this.hp = 5;
@@ -29,7 +30,7 @@ EnemyObj = function(index, game, player){
 };
 
 EnemyObj.prototype.update = function(){
-    this.enemy.rotation = game.physics.arcade.moveToXY(this.enemy, player.body.x, player.body.y, 25 * level);
+    this.enemy.rotation = game.physics.arcade.moveToXY(this.enemy, player.body.x + this.randM, player.body.y + this.randM, 25 * level);
 }
 
 EnemyObj.prototype.damage = function(){
@@ -37,6 +38,7 @@ EnemyObj.prototype.damage = function(){
     if(this.hp <= 0){
         score += 20;
         enemiesAlive--;
+        explosion.play();
         this.enemy.kill();
         return true;
     }
@@ -54,6 +56,7 @@ var text = [
 var index = 0;
 var line = '', nwText;
 var spaceBar;
+var music, explosion, powerup;
 
 var MenuState = {
 
@@ -66,10 +69,18 @@ var MenuState = {
         game.load.image('battery', 'img/battery.png');
         game.load.image('bullet', 'img/bullet.png');
         game.load.image('enemy', 'img/enemy.png');
+        game.load.audio('music', 'sounds/music.mp3');
+        game.load.audio('explosion', 'sounds/explosion.wav');
+        game.load.audio('powerup', 'sounds/pickup.wav');
 
     },
 
     create: function(){
+
+        music = game.add.audio('music');
+        music.volume = 0.02;
+        music.loop = true;
+        music.play();
 
         map = game.add.tilemap('level');
         map.addTilesetImage('tilesheet');
@@ -176,6 +187,10 @@ var GameState = {
 
     create: function(){
 
+        //Music
+        explosion = game.add.audio('explosion', 0.5, false);
+        powerup = game.add.audio('powerup', 1, false);
+
         // FPS
         game.time.desiredFps = 30;
 
@@ -259,7 +274,6 @@ var GameState = {
             var bullet = bullets.getFirstExists(false);
             bullet.reset(player.body.x + 16, player.body.y + 16);
             bullet.rotation = game.physics.arcade.moveToPointer(bullet, 1000, game.input.activePointer, 500);
-            console.log(enemiesAlive);
         }
 
         // Movement
@@ -346,6 +360,7 @@ var GameState = {
 function pickUpBattery(obj1, obj2){
     if(bCollected < 3){
         bCollected++;
+        powerup.play();
         batteries.remove(obj2);
     }
 }
