@@ -43,29 +43,93 @@ EnemyObj.prototype.damage = function(){
     return false;
 };
 
+var text = [
+    " ",
+    "Welcome...",
+    "This game was created for Ludum Dare 32",
+    "To start just press [SPACEBAR]",
+    "Good luck!"
+];
+
+var index = 0;
+var line = '', nwText;
+var spaceBar;
+
 var MenuState = {
 
     preload: function() {
         
+        game.load.tilemap('level', 'level.json', null, Phaser.Tilemap.TILED_JSON);
+        game.load.image('player', 'img/player.png');
+        game.load.image('tilesheet', 'img/tilesheet.png');
+        game.load.image('heart', 'img/heart.png');
+        game.load.image('battery', 'img/battery.png');
+        game.load.image('bullet', 'img/bullet.png');
+        game.load.image('enemy', 'img/enemy.png');
+
     },
 
     create: function(){
 
-        game.state.start("Game");
+        map = game.add.tilemap('level');
+        map.addTilesetImage('tilesheet');
+        map.setCollisionByExclusion([ 1 ]);
+        layer = map.createLayer('Layer');
+        layer.resizeWorld();
+
+        var nmText;
+
+        nmText = game.add.text(game.world.centerX - 25, game.world.centerY - 45, "Boxmagedon");
+        nmText.anchor.set(0.5);
+        nmText.align = 'center';
+        nmText.font = 'Arial Black';
+        nmText.fontSize = 105;
+        nmText.fontWeight = 'bold';
+        nmText.fill = '#499231';
+        nmText.fixedToCamera = true;
+
+        nwText = game.add.text(game.world.centerX - 25, game.world.centerY + 30, '');
+        nwText.anchor.set(0.5);
+        nwText.align = 'center';
+        nwText.font = 'Arial Black';
+        nwText.fontSize = 25;
+        nwText.fontWeight = 'bold';
+        nwText.fill = '#499231';
+        nwText.fixedToCamera = true;
+
+        nextL();
+        spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
     },
 
     update: function() {
-        
+        if (spaceBar.isDown){
+            game.state.start("Game");
+        }
     }
 
 };
 
-var LostState = {
+function nextL(){
+    if(index == 4) index = 0;
+    index++;
+    if (index < text.length){
+        line = '';
+        game.time.events.repeat(80, text[index].length + 1, updateL, this);
+    }
+}
 
-    preload: function() {
-        
-    },
+function updateL() {
+    if (line.length < text[index].length){
+        line = text[index].substr(0, line.length + 1);
+        nwText.setText(line);
+    } else {
+        game.time.events.add(Phaser.Timer.SECOND * 1, nextL, this);
+    }
+}
+
+
+var LostState = {
 
     create: function(){
 
@@ -104,27 +168,11 @@ var LostState = {
         rsText.fill = '#499231';
         rsText.fixedToCamera = true;
 
-    },
-
-    update: function() {
-        
     }
 
 };
 
 var GameState = {
-
-    preload: function() {
-
-        game.load.tilemap('level', 'level.json', null, Phaser.Tilemap.TILED_JSON);
-        game.load.image('player', 'img/player.png');
-        game.load.image('tilesheet', 'img/tilesheet.png');
-        game.load.image('heart', 'img/heart.png');
-        game.load.image('battery', 'img/battery.png');
-        game.load.image('bullet', 'img/bullet.png');
-        game.load.image('enemy', 'img/enemy.png');
-        
-    },
 
     create: function(){
 
