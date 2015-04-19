@@ -11,7 +11,7 @@ This is an entry for LudumDare 32. Game is built with `Javascript` and `Phaser`.
 * ~~Add GUI~~
 * ~~Add an ability to attack enemies~~
 * Create other scenes
-* Draw sprites
+* ~~Draw sprites~~
 * Add an ability for enemies to attack
 
 ### Extra

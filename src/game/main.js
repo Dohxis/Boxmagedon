@@ -5,7 +5,7 @@ var level = 1;
 var batteriesOn = 0;
 var score = 0;
 var enemiesAlive = 0;
-var killed = 0;
+var nF = 0, fR = 50;
 var lives = 3;
 var scoreText, hearts, battery;
 
@@ -18,7 +18,7 @@ EnemyObj = function(index, game, player){
     this.game = game;
     this.hp = 3;
     this.player = player;
-    this.enemy = game.add.sprite(x, y, 'player'); // TODO: Change sprite
+    this.enemy = game.add.sprite(x, y, 'enemy');
 
     game.physics.enable(this.enemy, Phaser.Physics.ARCADE);
     this.enemy.name = index.toString();
@@ -89,6 +89,7 @@ var GameState = {
         game.load.image('heart', 'img/heart.png');
         game.load.image('battery', 'img/battery.png');
         game.load.image('bullet', 'img/bullet.png');
+        game.load.image('enemy', 'img/enemy.png');
         
     },
 
@@ -173,7 +174,8 @@ var GameState = {
         player.body.velocity.y = 0;
 
         // Attack
-        if(game.input.activePointer.isDown){
+        if(game.input.activePointer.isDown && nF < game.time.now && bullets.countDead() > 0){
+            nF = game.time.now + fR;
             var bullet = bullets.getFirstExists(false);
             bullet.reset(player.body.x + 16, player.body.y + 16);
             bullet.rotation = game.physics.arcade.moveToPointer(bullet, 1000, game.input.activePointer, 500);
@@ -252,7 +254,10 @@ var GameState = {
         if(lives === 0){
             lives = 3;
             game.state.start("Lost");
-        }       
+        }
+
+        // Updating fire rate
+        fR = 500 / bCollected;       
 
     }
 
