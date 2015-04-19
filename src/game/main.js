@@ -16,7 +16,7 @@ EnemyObj = function(index, game, player){
     y = game.world.randomY;
 
     this.game = game;
-    this.hp = 3;
+    this.hp = 5;
     this.player = player;
     this.enemy = game.add.sprite(x, y, 'enemy');
 
@@ -29,7 +29,7 @@ EnemyObj = function(index, game, player){
 };
 
 EnemyObj.prototype.update = function(){
-    this.enemy.rotation = game.physics.arcade.moveToXY(this.enemy, player.body.x, player.body.y, 25);
+    this.enemy.rotation = game.physics.arcade.moveToXY(this.enemy, player.body.x, player.body.y, 25 * level);
 }
 
 EnemyObj.prototype.damage = function(){
@@ -201,13 +201,13 @@ var GameState = {
 
         // Create enemies
         if(enemiesAlive <= 0){
-            var nw = enemies.length + (level * 5);
+            var nw = enemies.length + (level * 2);
             for(var x = enemies.length; x < nw; x++){
                 enemies.push(new EnemyObj(x, game, enemy));
                 enemiesAlive++;
             }
             var no = 0;
-            if(level >= 3){ no = 3; } else {no = level; }
+            if(level >= 3){ no = 3 - bCollected; } else {no = level - bCollected; }
             for(var x = 0; x < no; x++){
                 addBattery();
             }
@@ -264,9 +264,8 @@ var GameState = {
 };
 
 function pickUpBattery(obj1, obj2){
-    if(bCollected < 100){
+    if(bCollected < 3){
         bCollected++;
-        //batteriesOn--;
         batteries.remove(obj2);
     }
 }
