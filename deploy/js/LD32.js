@@ -33,15 +33,17 @@ var enemiesAlive = 0;
 var nF = 0, fR = 50;
 var lives = 3;
 var scoreText, hearts, battery;
+var killed = 0, canKill = 10;
 
 EnemyObj = function(index, game, player){
 
-    var x, y;
+    var x, y, randM;
     x = 15;
     y = game.world.randomY;
+    this.randM = game.rnd.integerInRange(-200, 200);
 
     this.game = game;
-    this.hp = 5;
+    this.hp = 6;
     this.player = player;
     this.enemy = game.add.sprite(x, y, 'enemy');
 
@@ -54,43 +56,134 @@ EnemyObj = function(index, game, player){
 };
 
 EnemyObj.prototype.update = function(){
-    this.enemy.rotation = game.physics.arcade.moveToXY(this.enemy, player.body.x, player.body.y, 25 * level);
+    this.enemy.rotation = game.physics.arcade.moveToXY(this.enemy, player.body.x + this.randM, player.body.y + this.randM, 25 * level);
 }
 
 EnemyObj.prototype.damage = function(){
-    this.hp--;
+    if(bCollected == 3){
+        this.hp -= 3;
+        killed++;
+    } if(bCollected == 2){
+        this.hp -= 2;
+    } else {
+        this.hp--;
+    }
+
     if(this.hp <= 0){
-        score += 20;
+        if(bCollected == 3) { score += 50; } else { score += 20; }
         enemiesAlive--;
+        explosion.play();
         this.enemy.kill();
         return true;
     }
     return false;
 };
 
+var text = [
+    " ",
+    "Welcome...",
+    "This game was created for Ludum Dare 32",
+    "To start just press [SPACEBAR]",
+    "Good luck!"
+];
+
+var index = 0;
+var line = '', nwText;
+var spaceBar;
+var music, explosion, powerup;
+
 var MenuState = {
 
     preload: function() {
         
+        game.load.tilemap('level', 'level.json', null, Phaser.Tilemap.TILED_JSON);
+        game.load.image('player', 'img/player.png');
+        game.load.image('tilesheet', 'img/tilesheet.png');
+        game.load.image('heart', 'img/heart.png');
+        game.load.image('battery', 'img/battery.png');
+        game.load.image('bullet', 'img/bullet.png');
+        game.load.image('enemy', 'img/enemy.png');
+        game.load.audio('music', 'sounds/music.mp3');
+        game.load.audio('explosion', 'sounds/explosion.wav');
+        game.load.audio('powerup', 'sounds/pickup.wav');
+
     },
 
     create: function(){
 
-        game.state.start("Game");
+        music = game.add.audio('music');
+        music.volume = 0.02;
+        music.loop = true;
+        music.play();
+
+        map = game.add.tilemap('level');
+        map.addTilesetImage('tilesheet');
+        map.setCollisionByExclusion([ 1 ]);
+        layer = map.createLayer('Layer');
+        layer.resizeWorld();
+
+        var nmText;
+
+        nmText = game.add.text(game.world.centerX - 25, game.world.centerY - 45, "Boxmagedon");
+        nmText.anchor.set(0.5);
+        nmText.align = 'center';
+        nmText.font = 'Arial Black';
+        nmText.fontSize = 105;
+        nmText.fontWeight = 'bold';
+        nmText.fill = '#499231';
+        nmText.fixedToCamera = true;
+        nmText.alpha = 0;
+        game.add.tween(nmText).to( { alpha: 1 }, 2000, "Linear", true);
+
+        nwText = game.add.text(game.world.centerX - 25, game.world.centerY + 30, '');
+        nwText.anchor.set(0.5);
+        nwText.align = 'center';
+        nwText.font = 'Arial Black';
+        nwText.fontSize = 25;
+        nwText.fontWeight = 'bold';
+        nwText.fill = '#499231';
+        nwText.fixedToCamera = true;
+
+        nextL();
+        spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
     },
 
     update: function() {
-        
+        if (spaceBar.isDown){
+            game.state.start("Game");
+        }
     }
 
 };
 
-var LostState = {
+function playerTween(tweenValue) {
+    var tw;
+    tw = game.add.tween(player.scale);
+    tw.to({x: tweenValue, y: tweenValue}, 1000, Phaser.Easing.Linear.None);
+    tw.start();
+}
 
-    preload: function() {
-        
-    },
+function nextL(){
+    if(index == 4) index = 0;
+    index++;
+    if (index < text.length){
+        line = '';
+        game.time.events.repeat(80, text[index].length + 1, updateL, this);
+    }
+}
+
+function updateL() {
+    if (line.length < text[index].length){
+        line = text[index].substr(0, line.length + 1);
+        nwText.setText(line);
+    } else {
+        game.time.events.add(Phaser.Timer.SECOND * 1, nextL, this);
+    }
+}
+
+
+var LostState = {
 
     create: function(){
 
@@ -129,29 +222,17 @@ var LostState = {
         rsText.fill = '#499231';
         rsText.fixedToCamera = true;
 
-    },
-
-    update: function() {
-        
     }
 
 };
 
 var GameState = {
 
-    preload: function() {
-
-        game.load.tilemap('level', 'level.json', null, Phaser.Tilemap.TILED_JSON);
-        game.load.image('player', 'img/player.png');
-        game.load.image('tilesheet', 'img/tilesheet.png');
-        game.load.image('heart', 'img/heart.png');
-        game.load.image('battery', 'img/battery.png');
-        game.load.image('bullet', 'img/bullet.png');
-        game.load.image('enemy', 'img/enemy.png');
-        
-    },
-
     create: function(){
+
+        //Music
+        explosion = game.add.audio('explosion', 0.5, false);
+        powerup = game.add.audio('powerup', 1, false);
 
         // FPS
         game.time.desiredFps = 30;
@@ -181,7 +262,7 @@ var GameState = {
 
         // Enemies
         enemies = [];
-        for(var x = 0; x < level * 5; x++){
+        for(var x = 0; x < 1; x++){
             enemies.push(new EnemyObj(x, game, enemy));
             enemiesAlive++;
         }
@@ -236,7 +317,6 @@ var GameState = {
             var bullet = bullets.getFirstExists(false);
             bullet.reset(player.body.x + 16, player.body.y + 16);
             bullet.rotation = game.physics.arcade.moveToPointer(bullet, 1000, game.input.activePointer, 500);
-            console.log(enemiesAlive);
         }
 
         // Movement
@@ -286,24 +366,28 @@ var GameState = {
             battery[2].visible = true;
             battery[1].visible = false;
             battery[0].visible = false;
+            playerTween(1);
         }
 
         if(bCollected === 2){
             battery[2].visible = true;
             battery[1].visible = true;
             battery[0].visible = false;
+            playerTween(1.5);
         }
 
         if(bCollected === 3){
             battery[2].visible = true;
             battery[1].visible = true;
             battery[0].visible = true;
+            playerTween(2);
         }
 
         if(bCollected === 0){
             battery[2].visible = false;
             battery[1].visible = false;
             battery[0].visible = false;
+            playerTween(1);
         }
 
 
@@ -314,7 +398,13 @@ var GameState = {
         }
 
         // Updating fire rate
-        fR = 500 / bCollected;       
+        fR = 500 / bCollected;
+
+        // Decrease batteries
+        if(killed == canKill){
+            bCollected = 2;
+            canKill *= 2;
+        }        
 
     }
 
@@ -323,6 +413,7 @@ var GameState = {
 function pickUpBattery(obj1, obj2){
     if(bCollected < 3){
         bCollected++;
+        powerup.play();
         batteries.remove(obj2);
     }
 }
