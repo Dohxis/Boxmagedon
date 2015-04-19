@@ -94,7 +94,40 @@ var LostState = {
 
     create: function(){
 
-        game.state.start("Game", true, false);
+        map = game.add.tilemap('level');
+        map.addTilesetImage('tilesheet');
+        map.setCollisionByExclusion([ 1 ]);
+        layer = map.createLayer('Layer');
+        layer.resizeWorld();
+
+        var scText, lsText, rsText;
+
+        scText = game.add.text(game.world.centerX, game.world.centerY - 25, "Your score is " + score.toString());
+        scText.anchor.set(0.5);
+        scText.align = 'center';
+        scText.font = 'Arial Black';
+        scText.fontSize = 35;
+        scText.fontWeight = 'bold';
+        scText.fill = '#499231';
+        scText.fixedToCamera = true;
+
+        lsText = game.add.text(game.world.centerX, game.world.centerY - 75, "You lost!");
+        lsText.anchor.set(0.5);
+        lsText.align = 'center';
+        lsText.font = 'Arial Black';
+        lsText.fontSize = 75;
+        lsText.fontWeight = 'bold';
+        lsText.fill = '#499231';
+        lsText.fixedToCamera = true;
+
+        rsText = game.add.text(game.world.centerX, game.world.centerY + 10, "Restart this page and try again :)");
+        rsText.anchor.set(0.5);
+        rsText.align = 'center';
+        rsText.font = 'Arial Black';
+        rsText.fontSize = 20;
+        rsText.fontWeight = 'bold';
+        rsText.fill = '#499231';
+        rsText.fixedToCamera = true;
 
     },
 
@@ -128,7 +161,6 @@ var GameState = {
         map.addTilesetImage('tilesheet');
         map.setCollisionByExclusion([ 1 ]);
         layer = map.createLayer('Layer');
-        //layer.debug = true;
         layer.resizeWorld();
 
         // Physics
@@ -241,7 +273,7 @@ var GameState = {
 
         for (var i = 0; i < enemies.length; i++){
             game.physics.arcade.collide(player, enemies[i].enemy, function(){
-                if(lives > 0) { hearts[lives - 1].destroy(); lives--; }
+                if(lives > 0) { hearts[lives - 1].destroy(); lives--; player.body.x = game.world.centerX; player.body.y = game.world.centerY; }
             });
             game.physics.arcade.collide(bullets, enemies[i].enemy, hitEnemy, null, this);
             enemies[i].update();
