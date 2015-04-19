@@ -8,6 +8,7 @@ var enemiesAlive = 0;
 var nF = 0, fR = 50;
 var lives = 3;
 var scoreText, hearts, battery;
+var killed = 0, canKill = 10;
 
 EnemyObj = function(index, game, player){
 
@@ -17,7 +18,7 @@ EnemyObj = function(index, game, player){
     this.randM = game.rnd.integerInRange(-200, 200);
 
     this.game = game;
-    this.hp = 5;
+    this.hp = 6;
     this.player = player;
     this.enemy = game.add.sprite(x, y, 'enemy');
 
@@ -34,9 +35,17 @@ EnemyObj.prototype.update = function(){
 }
 
 EnemyObj.prototype.damage = function(){
-    this.hp--;
+    if(bCollected == 3){
+        this.hp -= 3;
+        killed++;
+    } if(bCollected == 2){
+        this.hp -= 2;
+    } else {
+        this.hp--;
+    }
+
     if(this.hp <= 0){
-        score += 20;
+        if(bCollected == 3) { score += 50; } else { score += 20; }
         enemiesAlive--;
         explosion.play();
         this.enemy.kill();
@@ -98,6 +107,8 @@ var MenuState = {
         nmText.fontWeight = 'bold';
         nmText.fill = '#499231';
         nmText.fixedToCamera = true;
+        nmText.alpha = 0;
+        game.add.tween(nmText).to( { alpha: 1 }, 2000, "Linear", true);
 
         nwText = game.add.text(game.world.centerX - 25, game.world.centerY + 30, '');
         nwText.anchor.set(0.5);
@@ -120,6 +131,13 @@ var MenuState = {
     }
 
 };
+
+function playerTween(tweenValue) {
+    var tw;
+    tw = game.add.tween(player.scale);
+    tw.to({x: tweenValue, y: tweenValue}, 1000, Phaser.Easing.Linear.None);
+    tw.start();
+}
 
 function nextL(){
     if(index == 4) index = 0;
@@ -219,7 +237,7 @@ var GameState = {
 
         // Enemies
         enemies = [];
-        for(var x = 0; x < level * 5; x++){
+        for(var x = 0; x < 1; x++){
             enemies.push(new EnemyObj(x, game, enemy));
             enemiesAlive++;
         }
@@ -323,24 +341,28 @@ var GameState = {
             battery[2].visible = true;
             battery[1].visible = false;
             battery[0].visible = false;
+            playerTween(1);
         }
 
         if(bCollected === 2){
             battery[2].visible = true;
             battery[1].visible = true;
             battery[0].visible = false;
+            playerTween(1.5);
         }
 
         if(bCollected === 3){
             battery[2].visible = true;
             battery[1].visible = true;
             battery[0].visible = true;
+            playerTween(2);
         }
 
         if(bCollected === 0){
             battery[2].visible = false;
             battery[1].visible = false;
             battery[0].visible = false;
+            playerTween(1);
         }
 
 
@@ -351,7 +373,13 @@ var GameState = {
         }
 
         // Updating fire rate
-        fR = 500 / bCollected;       
+        fR = 500 / bCollected;
+
+        // Decrease batteries
+        if(killed == canKill){
+            bCollected = 2;
+            canKill *= 2;
+        }        
 
     }
 
