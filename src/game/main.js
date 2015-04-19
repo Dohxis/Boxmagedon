@@ -1,27 +1,20 @@
-var player, batteries, enemies, enemy, bullets;
-var bCollected = 1;
-var map, layer;
-var level = 1;
-var batteriesOn = 0;
-var score = 0;
+var player, batteries, enemies, enemy, bullets, scoreText, hearts, battery;
+var bCollected = 1, batteriesOn = 0;;
+var map, layer, level = 1;
+var score = 0, lives = 3;
 var enemiesAlive = 0;
 var nF = 0, fR = 50;
-var lives = 3;
-var scoreText, hearts, battery;
 var killed = 0, canKill = 10;
 
-EnemyObj = function(index, game, player){
+EnemyObj = function(index, game, enemy){
 
     var x, y, randM;
     x = 15;
     y = game.world.randomY;
-    this.randM = game.rnd.integerInRange(-200, 200);
-
+    this.randM = game.rnd.integerInRange(-50, 50);
     this.game = game;
     this.hp = 6;
-    this.player = player;
     this.enemy = game.add.sprite(x, y, 'enemy');
-
     game.physics.enable(this.enemy, Phaser.Physics.ARCADE);
     this.enemy.name = index.toString();
     this.enemy.body.immovable = false;
@@ -62,10 +55,8 @@ var text = [
     "Good luck!"
 ];
 
-var index = 0;
-var line = '', nwText;
-var spaceBar;
-var music, explosion, powerup;
+var index = 0, line = '', nwText;
+var spaceBar, music, explosion, powerup, shoot;
 
 var MenuState = {
 
@@ -81,13 +72,14 @@ var MenuState = {
         game.load.audio('music', 'sounds/music.mp3');
         game.load.audio('explosion', 'sounds/explosion.wav');
         game.load.audio('powerup', 'sounds/pickup.wav');
+        game.load.audio('shoot', 'sounds/shoot.wav');
 
     },
 
     create: function(){
 
         music = game.add.audio('music');
-        music.volume = 0.02;
+        music.volume = 0.01;
         music.loop = true;
         music.play();
 
@@ -206,8 +198,9 @@ var GameState = {
     create: function(){
 
         //Music
-        explosion = game.add.audio('explosion', 0.5, false);
-        powerup = game.add.audio('powerup', 1, false);
+        explosion = game.add.audio('explosion', 0.05, false);
+        powerup = game.add.audio('powerup', 0.09, false);
+        shoot = game.add.audio('shoot', 0.005, false);
 
         // FPS
         game.time.desiredFps = 30;
@@ -237,7 +230,7 @@ var GameState = {
 
         // Enemies
         enemies = [];
-        for(var x = 0; x < 1; x++){
+        for(var x = 0; x < 2; x++){
             enemies.push(new EnemyObj(x, game, enemy));
             enemiesAlive++;
         }
@@ -288,6 +281,7 @@ var GameState = {
 
         // Attack
         if(game.input.activePointer.isDown && nF < game.time.now && bullets.countDead() > 0){
+            shoot.play();
             nF = game.time.now + fR;
             var bullet = bullets.getFirstExists(false);
             bullet.reset(player.body.x + 16, player.body.y + 16);
