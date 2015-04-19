@@ -1,18 +1,17 @@
-Ludum Dare 32
+Boxmagedon
 -------------
+![Boxmagedon](http://i.imgur.com/3S9jcBW.png)<br />
+**Boxmagedon** is a game where you need to destroy other boxes and collect batteries. Batteries gives more power so you can kill more boxes! Game was created using `Javascript` and `Phaser` for compo.
 
-This is an entry for LudumDare 32. Game is built with `Javascript` and `Phaser`.
+#### Controls
+Controls are really simple. **Left mouse key** to attack and **WSAD** to move!
 
-### Todo
-* ~~Movement~~
-* ~~Spawn batteries~~
-* ~~Load TileMap~~
-* ~~Add enemies~~
-* ~~Add GUI~~
-* ~~Add an ability to attack enemies~~
-* ~~Create other scenes~~
-* ~~Draw sprites~~
+#### Build & Run 
+To build and run `Boxmagedon` copy and paste these commands to terminal
+```bash
+npm install
+grunt
+```
+Or you can play it [here](http://dohxis.github.io/LD32/deploy/)!
 
-### Extra
-* ~~Create music~~
-* Add effect for attacks
+**Thanks for playing my game! :)**
